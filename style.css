@@ -8,6 +8,7 @@
 .head-line svg{
     width: 430px;
 }
+
 .menus{
     margin-top: 1em;
     display: flex;
@@ -97,4 +98,10 @@
 .icon-button {
 padding: 8px 9px 9px;
 margin-top: 5px;
+}
+
+@media (max-width: 500px) {
+  .head-line svg {
+    width: 100%;
+  }
 }
