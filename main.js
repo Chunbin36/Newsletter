@@ -2,7 +2,10 @@ const Api_KEY = `1762ea44d88e4718ba27607148b2bced`;
 let newsList = [];
 const menus = document.querySelectorAll(".menus button");
 const sideMenus = document.querySelectorAll(".side-menu-list button");
-
+let totalResults = 0
+let page = 1
+const pageSize = 10
+const groupSize = 5
 
 menus.forEach((menu) =>
   menu.addEventListener("click", (event) => getNewsByCategory(event)),
@@ -19,14 +22,20 @@ let url = new URL(
 
 const fetchNews = async (url) => {
   try {
+    url.searchParams.set("page",page); // => &page = page
+    url.searchParams.set ("pageSize", pageSize);
+
     const response = await fetch(url);
     const data = await response.json();
+    console.log("ddd",data);
     if(response.status===200){
       if(data.articles.length===0){
         throw new Error("No result for this search");
       }
       newsList=data.articles;
+      totalResults = data.totalResults
       render();
+      pagiNationRender();
     }else{
       throw new Error(data.message);
     }
@@ -52,6 +61,7 @@ const getNewsByCategory = async (event) => {
 
 const getNewsByKeyword = async () => {
   const keyword = document.getElementById("search-input").value;
+  page = 1;
   url = new URL(
     `https://noona-times-be-5ca9402f90d9.herokuapp.com/top-headlines?country=kr&q=${keyword}`,
   );
@@ -100,6 +110,54 @@ const errorRender = (errorMessage) => {
     </div>`;
 
     document.getElementById("news-board").innerHTML=errorHTML;
+}
+
+const pagiNationRender = ( ) => {
+  //totalResult,
+  //page
+  //pageSize
+  //groupSize
+  //totalPages
+  const totalPages =  Math.ceil (totalResults / pageSize);
+  //pageGroup
+  const pageGroup = Math.ceil (page / groupSize);
+  //lastPage
+  let lastPage = pageGroup * groupSize;
+  //마지막 페이지그룹이 그룹사이즈보다 작다? lastPage = totalPage
+  if(lastPage > totalPages){
+    lastPage = totalPages;
+  }
+
+  //firstPage
+  const firstPage = lastPage - (groupSize - 1) <= 0? 1 : lastPage - (groupSize - 1);
+
+
+  let pagiNationHTML = `<li class="page-item" onclick="moveToPage(${page-1})"><a class="page-link" href="#">&lt;</a></li>`;
+
+  for(let i=firstPage; i<=lastPage; i++){
+  pagiNationHTML += `<li class="page-item ${
+    i === page? "active":""
+  }" onclick="moveToPage(${i})"><a class="page-link">${i}</a></li>`
+  }
+  pagiNationHTML +=`<li class="page-item" onclick="moveToPage(${page+1})"><a class="page-link" href="#">&gt;</a></li>`;
+  document.querySelector(".pagination").innerHTML=pagiNationHTML
+//   <nav aria-label="Page navigation example">
+// <ul class="pagination">
+//   <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+//   <li class="page-item"><a class="page-link" href="#">1</a></li>
+//   <li class="page-item"><a class="page-link" href="#">2</a></li>
+//   <li class="page-item"><a class="page-link" href="#">3</a></li>
+//   <li class="page-item"><a class="page-link" href="#">Next</a></li>
+// </ul>
+// </nav>
+
+
+}
+
+const moveToPage = (pageNum) =>{
+  console.log("moveToPage", pageNum);
+  page = pageNum;
+  fetchNews (url);
 }
 
 getLatestNews();
